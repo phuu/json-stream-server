@@ -4,10 +4,9 @@
   "bin": {
     "json-stream-server": "json-stream-server"
   },
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Serves JSON you pipe to it.",
-  "scripts": {
-  },
+  "scripts": {},
   "author": "Tom Ashworth <ta@twitter.com>",
   "license": "MIT",
   "dependencies": {
