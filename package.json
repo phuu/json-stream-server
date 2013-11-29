@@ -2,9 +2,7 @@
   "name": "json-stream-server",
   "preferGlobal": true,
   "bin": {
-    "json-stream-server": "json-stream-server",
-    "json-server": "json-stream-server",
-    "jss": "json-stream-server"
+    "json-stream-server": "json-stream-server"
   },
   "version": "0.0.0",
   "description": "Serves JSON you pipe to it.",
