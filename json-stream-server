@@ -1,0 +1,86 @@
+#!/usr/bin/env node
+
+var argv = require('optimist').argv;
+var through = require('through');
+var split = require('split');
+var http = require('http');
+var express = require('express');
+
+/**
+ * Data
+ */
+var data = {};
+var idKey = argv['id-key'] || argv.i || 'id';
+var guid = 0;
+
+process.stdin
+  .pipe(split())
+  .pipe(through(processLine))
+  .pipe(process.stdout);
+
+/**
+ * Server
+ */
+
+var app = express();
+
+app.use(express.logger('server req :method :url = :status (:response-time ms)'));
+app.use(express.bodyParser());
+app.use(app.router);
+
+app.get('/', function (req, res) {
+  res.jsonp(Object.values(data));
+});
+
+http
+  .createServer(app)
+  .listen(argv._[0] || argv.port || argv.p, function () {
+    console.log('server up http://localhost:%s', this.address().port);
+  });
+
+/**
+ * Utilities
+ */
+
+Object.values = function (o) {
+  return Object.keys(o).map(function (k) {
+    return o[k];
+  });
+};
+
+function filterEmpty(f) { return !!f.length; }
+
+function extractData(val) {
+  return val.toString()
+            .split('\n')
+            .filter(filterEmpty)
+}
+
+function jsonParse(str) {
+  try {
+    return JSON.parse(str);
+  } catch (e) {}
+}
+
+function processLine(line) {
+  if (!line.length) return;
+
+  extractData(line)
+    .map(jsonParse)
+    .forEach(function (obj) {
+      if (typeof obj === "undefined") return;
+
+      var id = obj[idKey];
+      var res = [];
+      if (typeof id !== "undefined") {
+        var msg = 'update';
+        if (!data[id]) msg = 'new';
+        res.push(msg, id);
+      } else {
+        id = 'guid-' + (++guid);
+        res.push(id, line);
+      }
+      data[id] = obj;
+      this.queue(res.join(' ') + '\n');
+    }.bind(this));
+}
